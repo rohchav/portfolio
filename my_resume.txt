@@ -1,0 +1,63 @@
+ROHIT CHAVAN
+
+(346) 386-6949 • roh.chavan11@gmail.com • https://www.linkedin.com/in/rohchav/
+
+Aspiring software engineer with a track record of designing and shipping production-grade systems and full‑stack applications that improve reliability and developer velocity. Expertise in C++, Python, and JavaScript frameworks, with hands-on ownership of architecture, TDD, CI/CD, and cloud deployments on Azure. Experienced in automating workflows, building simulation and testing frameworks, and partnering with cross‑functional teams to deliver measurable improvements in performance, uptime, and operational cost.
+
+SKILLS
+
+Programming: C++, Python, C, JavaScript, TypeScript, SQL, C#, Bash, HTML
+
+Data Science & ML: NumPy, Pandas, TensorFlow, Scikit-learn, PyTorch, JAX, NEvopy, mlflow
+
+Software & Tools: Linux (Ubuntu), Git (Version Control), Excel, Docker, CLI, Azure, AWS, GCP, Jira, Power Apps, OpenAI Codex, Claude Code, Replit
+
+PROFESSIONAL EXPERIENCE
+
+Washington Software Inc, Gaithersburg, MD
+
+CloudOps Workflow Integration (October 2025 – Present)
+
+Built and deployed automated data and email monitoring pipelines in Microsoft Power Automate and Azure, integrating chatbot logic for classification and case management
+Led cross-environment rollout of the Bridge Program inquiry system across internal domains, managing 5+ Jira sprints and 15+ user stories to ensure reliable deployment and testing
+Ergodic LLC, Seattle, WA
+
+Plasma Parameter Estimation (February 2025 – Present)
+
+Refactored object-oriented configuration logic across four simulation modules, enforcing coding standards and reducing code duplication by 40% within a CI/CD pipeline
+Diagnosed and resolved 75% of unit/integration test failures, reinforcing test-driven development practices and stabilizing simulation infrastructure
+Interacted with Tesseract-core modules (Docker containers) hosted on cloud infrastructure, leveraging Linux/Unix Shell to manage simulation outputs and analyze data
+Collaborative Design Experience, East Lansing, MI
+
+Increasing Simulation Variety for Self-Driving Environments (September 2024 – December 2024)
+
+Developed computer vision–style simulation assets in Unreal Engine and Carla to automate perception pipelines for autonomous driving systems, supporting synthetic data generation and scalable ML testing environments
+Created a reusable bulk-processing tool with probabilistic asset variation (scale, texture, rotation) and a save/load feature integrating XML, reducing manual setup time by 90%
+Led weekly design reviews consulting with stakeholders; consolidated 10+ tools into a unified UI panel and ensured secure demo deployment under tight deadlines
+Collaborated in an Agile team with GitHub for version control, participating in sprint planning, code reviews, and secure deployment workflows, and providing technical documentation
+Michigan State University, East Lansing, MI
+
+Undergraduate Research & Projects (September 2021 – December 2024)
+
+Served as undergraduate research assistant on MCMC graph-compression, tuning hyperparameters to downscale real-world networks by 25–75% while preserving key statistical properties
+Architected a Random Forest classifier leveraging scikit-learn models training on three seasons of NFL data (team of 4) deploying SQL queries, predicting game outcomes at 80% accuracy, and surfacing key insights
+Built a CNN in Python (team of 4) using TensorFlow/Keras to classify 10 hand-drawn sketch categories at 70% test accuracy; developed a NumPy pipeline (28×28 resize, grayscale) boosting validation
+Engineered a modular C++/wxWidgets animation tool with Box2D physics integration; applied object-oriented design patterns and oversaw full development lifecycle
+PROJECTS
+
+Multi-Scale Bio Simulator
+
+Constructed a front-end bio-sim MVP that streams typed quantum/chemical events into a live React sandbox for instant environment feedback: link
+Delivered an H–H orbital visualizer with Heitler–London σ/σ* sampling, phase-colored particles, and cached marching-cubes density for rapid bonding insight
+Laid the pipeline using prompt engineering on Claude Code to scale toward full-stack (C++ backend and Javascript frontend), multi-electron atoms, richer bonding models, and cell-level simulations to deepen research and teaching scenarios
+You Know Ball
+
+Engineered large-scale ML pipeline ingesting 23K+ game records across 18 seasons using pandas and PostgreSQL, training LightGBM ensembles — demonstrating scalable model deployment and data pipeline management
+Trained calibrated LightGBM ensembles on time-aware splits reaching 0.751 AUC, 0.593 log loss, and 0.203 Brier on the holdout set
+EDUCATION
+
+Michigan State University, College of Engineering — East Lansing, MI
+
+Bachelor of Science in Computer Science, Cognate: Mathematics and Statistics, Focus: Machine Learning
+
+Graduation: December 2024 • GPA: 3.57
