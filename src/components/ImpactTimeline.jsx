@@ -1,34 +1,34 @@
 const timelineItems = [
     {
-        period: "2025 - Present",
-        title: "CloudOps Workflow Integration",
+        period: "2026 - Present",
+        title: "ORTUS · Complex Systems Modeling",
         highlights: [
-            "Built automated monitoring pipelines with Azure + Power Automate.",
-            "Managed 5+ Jira sprints and 15+ user stories for reliable rollout.",
+            "Building a deterministic browser simulation sandbox for agent interactions, networks, uncertainty, interventions, and experiments.",
+            "Developing World, Workshop, Lab, and Atlas workflows around model exploration while keeping model-vs-world evidence boundaries explicit.",
         ],
     },
     {
         period: "2025 - Present",
-        title: "Plasma Parameter Estimation",
+        title: "Simulation & Scientific Software",
         highlights: [
-            "Reduced duplication by 40% across four simulation modules.",
-            "Resolved 75% of unit/integration failures to stabilize CI/CD.",
+            "Worked across simulation infrastructure, computational tooling, and model-facing interfaces in Python, C++, React, and TypeScript.",
+            "Focused on reproducibility, testing, performance, and the translation of technical models into usable workflows.",
+        ],
+    },
+    {
+        period: "2025 - 2026",
+        title: "Data-Driven Modeling",
+        highlights: [
+            "Built a time-aware NBA prediction pipeline spanning 23K+ games and 18 seasons with calibrated holdout evaluation.",
+            "Used model evaluation as a design constraint: leakage prevention, probability quality, uncertainty, and reproducible feature generation.",
         ],
     },
     {
         period: "2024",
         title: "Autonomy Simulation Toolkit",
         highlights: [
-            "Cut manual scene setup time by 90% with asset variation tooling.",
-            "Unified 10+ tools into a single UI panel for stakeholders.",
-        ],
-    },
-    {
-        period: "2021 - 2024",
-        title: "ML Research & Projects",
-        highlights: [
-            "Forecasted NFL outcomes at 80% accuracy using Random Forests.",
-            "Built CNN classifiers and graph-compression research workflows.",
+            "Built probabilistic Unreal Engine + CARLA environment-variation tooling for synthetic testing workflows.",
+            "Reduced manual simulation setup time by 90% and added reusable configuration persistence.",
         ],
     },
 ];
@@ -37,28 +37,22 @@ export const ImpactTimeline = () => {
     return (
         <section id="impact" className="py-24 px-4 relative">
             <div className="container mx-auto max-w-5xl">
-                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest mb-12 text-center">
-                    Impact <span className="text-primary">Timeline</span>
-                </h2>
+                <div className="text-center mb-12">
+                    <p className="font-mono uppercase tracking-wide text-sm text-muted-foreground">Trajectory</p>
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest mt-2">
+                        Current <span className="text-primary">Focus</span>
+                    </h2>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {timelineItems.map((item) => (
                         <div key={item.title} className="gradient-border p-6 text-left space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="font-mono uppercase tracking-wide text-xs text-muted-foreground">
-                                    {item.period}
-                                </span>
-                                <span className="px-2 py-1 border-2 border-foreground bg-primary text-foreground font-mono uppercase text-xs shadow-[2px_2px_0_hsl(var(--foreground))]">
-                                    Impact
-                                </span>
-                            </div>
-                            <h3 className="font-semibold uppercase tracking-wide text-lg">
-                                {item.title}
-                            </h3>
-                            <ul className="text-sm text-muted-foreground space-y-2">
-                                {item.highlights.map((highlight) => (
-                                    <li key={highlight}>{highlight}</li>
-                                ))}
+                            <span className="font-mono uppercase tracking-wide text-xs text-muted-foreground">
+                                {item.period}
+                            </span>
+                            <h3 className="font-semibold uppercase tracking-wide text-lg">{item.title}</h3>
+                            <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5">
+                                {item.highlights.map((highlight) => <li key={highlight}>{highlight}</li>)}
                             </ul>
                         </div>
                     ))}
