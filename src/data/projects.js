@@ -1,40 +1,40 @@
 import bioSimScreenshot from "../assets/bio_sim_ss.png";
 import magnaScreenshot from "../assets/magna_proj_ss.png";
+import ortusScreenshot from "../assets/Screenshot 2026-08-26 114221.png";
 import youKnowBallScreenshot from "../assets/you_know_ball_ss.png";
 
 const projects = [
     {
         slug: "ortus",
         title: "ORTUS",
-        subtitle: "A browser-based sandbox for complex-systems investigation",
+        subtitle: "A browser-based modeling and simulation environment",
         summary:
-            "Deterministic TypeScript simulation platform for exploring agent interactions, networks, uncertainty, interventions, experiments, and model behavior without overstating what the model proves about the real world.",
-        tags: ["Complex Systems", "Agent-Based Modeling", "TypeScript", "Simulation"],
+            "ORTUS is a browser-based environment I built for running and investigating models of interacting systems. Its current release combines seeded deterministic simulations with scenario setup, observations and metrics, controlled interventions, bounded experiments, and run comparison across seven production templates. Flocking now uses a Worker-owned runtime with bounded render and UI projections; Workshop authoring and the Atlas preview remain deliberately limited so exploratory model behavior is not presented as real-world evidence.",
+        tags: ["Simulation", "Modeling", "TypeScript", "Scientific Software"],
         featured: true,
         links: {
             repo: "https://github.com/rohchav/ORTUS",
             caseStudy: "/projects/ortus",
         },
-        image: null,
-        imageAlt: "ORTUS complex-systems simulation sandbox",
+        image: ortusScreenshot,
+        imageAlt: "ORTUS World interface running a flocking simulation with live agents, seeded runtime controls, and model parameters",
         metrics: [
-            { label: "Worlds", value: "11 runnable models" },
-            { label: "Runtime", value: "Seeded + deterministic" },
-            { label: "Research Tools", value: "Experiments, compare, Atlas" },
+            { label: "Models", value: "7 production templates" },
+            { label: "Runtime", value: "Worker-owned Flocking path" },
+            { label: "Workflows", value: "Scenarios, experiments, compare" },
         ],
         problem: [
             "Complex-systems tools often make it difficult to move from an intuitive model idea to a reproducible investigation.",
             "Simulation interfaces can blur the line between model behavior and evidence about the real world.",
         ],
         approach: [
-            "Built a deterministic simulation engine with seeded randomness, snapshots, metrics, interventions, experiments, and bounded run comparisons.",
-            "Designed a World/Workshop/Lab/Atlas product architecture for running, authoring, investigating, and mapping model behavior.",
-            "Added explicit scientific boundaries around interpretation, causality, uncertainty, validation, and model-vs-world claims.",
-            "Expanded the platform through runnable starter worlds, guided investigations, performance architecture, and accessibility-focused UI audits.",
+            "Built deterministic seeded execution with validated scenarios, exact snapshot restore, metrics, template-defined interventions, bounded experiments, and run summaries.",
+            "Separated the Flocking engine runtime from React through a Worker-owned execution path and bounded render/UI projections.",
+            "Designed World, Workshop, Lab, and Atlas surfaces with explicit capability and model-vs-world boundaries.",
         ],
         impact: [
-            "Created a reusable foundation for studying emergence, feedback, networks, stochasticity, adaptation, and path-dependent behavior across multiple model families.",
-            "Turned complex-systems concepts into inspectable software workflows rather than isolated simulations.",
+            "Created seven production templates spanning local-interaction agents, grids, spatial populations, and one bounded template-owned network.",
+            "Turned model exploration into inspectable software workflows while keeping planned research features distinct from current behavior.",
         ],
         stack: ["Next.js", "React", "TypeScript", "Vitest", "Playwright", "Zod", "Zustand"],
     },

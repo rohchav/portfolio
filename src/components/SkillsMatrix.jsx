@@ -1,21 +1,21 @@
 const toolkit = [
     {
         group: "Modeling",
-        skills: ["Agent-based modeling", "Networks", "Stochastic systems", "Uncertainty", "Experiment design"],
+        skills: ["Agent-based modeling", "Seeded simulation", "Networks & graphs", "Uncertainty", "Experiment design"],
     },
     {
         group: "Engineering",
         skills: ["Python", "C++", "TypeScript", "React / Next.js", "PostgreSQL", "Docker", "Linux"],
     },
     {
-        group: "Evaluation",
-        skills: ["Pandas / NumPy", "scikit-learn", "LightGBM", "PyTorch", "JAX", "MLflow", "Playwright / Vitest"],
+        group: "ML / Evaluation",
+        skills: ["Pandas / NumPy", "scikit-learn", "LightGBM", "JAX", "MLflow", "Vitest / Playwright"],
     },
 ];
 
 export const SkillsMatrix = () => {
     return (
-        <div className="gradient-border p-6 text-left space-y-6">
+        <div className="gradient-border space-y-6 p-6 text-left sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-semibold uppercase tracking-wide text-lg">Working Toolkit</h3>
                 <span className="font-mono uppercase text-xs text-muted-foreground">

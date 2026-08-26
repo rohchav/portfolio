@@ -32,7 +32,7 @@ export const ContactSection = () => {
         <section id="contact" className="py-24 px-4 relative">
             <div className="container mx-auto max-w-5xl">
                 <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest mb-4 text-center">
-                    Let&apos;s <span className="text-primary">Connect</span>
+                    Let&apos;s <span className="text-accent-ink">Connect</span>
                 </h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto text-center mb-12 font-medium">
                     Interested in collaborating or learning more about my work? Reach out
@@ -51,8 +51,8 @@ export const ContactSection = () => {
                                 rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="p-3 border-2 border-foreground bg-primary">
-                                        <Icon className="h-6 w-6 text-foreground" />
+                                    <div className="p-3 border-2 border-foreground bg-primary text-primary-foreground">
+                                        <Icon className="h-6 w-6" aria-hidden="true" />
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-lg uppercase tracking-wide">

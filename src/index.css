@@ -9,6 +9,7 @@
 
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent-ink: hsl(var(--accent-ink));
 
   --color-card: hsl(var(--card));
   --color-muted-foreground: hsl(var(--muted-foreground));
@@ -72,14 +73,17 @@
 
     --card: 0 0% 100%;
 
-    --primary: 120 45% 28%;
+    --primary: 160 84% 39%;
     --primary-foreground: 228 28% 12%;
+    --accent-ink: 163 94% 24%;
 
     --border: 228 28% 12%;
     --muted-foreground: 228 12% 30%;
     --grid: 0 0% 0% / 0.08;
-    --doodle-stroke: hsl(120 35% 26%);
-    --doodle-opacity: 0.18;
+    --doodle-stroke: hsl(160 88% 25%);
+    --doodle-opacity: 0.15;
+    --simulation-agent: #047857;
+    --simulation-neighbor: rgb(4 120 87 / 0.16);
   }
 
   .dark {
@@ -88,14 +92,17 @@
 
     --card: 228 24% 14%;
 
-    --primary: 120 45% 28%;
+    --primary: 158 72% 45%;
     --primary-foreground: 228 28% 12%;
+    --accent-ink: 158 64% 52%;
 
     --border: 0 0% 98%;
     --muted-foreground: 0 0% 82%;
     --grid: 0 0% 100% / 0.08;
-    --doodle-stroke: hsl(120 35% 70%);
-    --doodle-opacity: 0.16;
+    --doodle-stroke: hsl(158 64% 52%);
+    --doodle-opacity: 0.13;
+    --simulation-agent: #34d399;
+    --simulation-neighbor: rgb(52 211 153 / 0.14);
   }
 
   * {
@@ -104,6 +111,10 @@
 
   html {
     @apply scroll-smooth;
+  }
+
+  section[id] {
+    scroll-margin-top: 6rem;
   }
 
   body {
@@ -117,6 +128,11 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  :focus-visible {
+    outline: 3px solid hsl(var(--accent-ink));
+    outline-offset: 4px;
+  }
+
   code,
   pre,
   .font-mono {
@@ -126,10 +142,11 @@
 
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  padding-inline: 1rem;
 
   @media (width >= 640px) {
     max-width: 640px;
+    padding-inline: 2rem;
   }
   @media (width >= 768px) {
     max-width: 768px;
@@ -151,8 +168,7 @@
 }
 
 @utility text-gradient {
-  @apply inline-flex items-center justify-center bg-primary text-foreground px-3 py-1 text-center leading-none;
-  box-decoration-break: clone;
+  @apply text-accent-ink;
 }
 
 @utility card-hover {
@@ -165,7 +181,7 @@
 }
 
 @utility cosmic-button {
-  @apply px-6 py-2 border-2 border-foreground bg-primary text-foreground font-mono font-semibold uppercase tracking-widest rounded-none;
+  @apply px-6 py-2 border-2 border-foreground bg-primary text-primary-foreground font-mono font-semibold uppercase tracking-widest rounded-none;
   box-shadow: 4px 4px 0 hsl(var(--foreground));
 }
 
@@ -190,6 +206,24 @@
 
 .gradient-border:hover {
   box-shadow: 8px 8px 0 hsl(var(--foreground));
+}
+
+input[type="range"] {
+  accent-color: hsl(var(--primary));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 #root {

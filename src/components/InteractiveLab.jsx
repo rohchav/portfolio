@@ -1,8 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const GRID_WIDTH = 12;
-const GRID_HEIGHT = 8;
-const STEPS = 18;
+const AGENT_COUNT = 72;
+const FRAME_INTERVAL = 1000 / 30;
+const NEIGHBOR_RADIUS = 0.16;
+const SEPARATION_RADIUS = 0.045;
+const DEFAULT_CONTROLS = {
+    stickTogether: 58,
+    matchDirection: 72,
+    keepDistance: 64,
+};
 
 const createRng = (seed) => {
     let value = seed % 2147483647;
@@ -13,200 +19,371 @@ const createRng = (seed) => {
     };
 };
 
-const indexOf = (x, y) => y * GRID_WIDTH + x;
-
-const neighbors = (x, y) => [
-    [(x - 1 + GRID_WIDTH) % GRID_WIDTH, y],
-    [(x + 1) % GRID_WIDTH, y],
-    [x, (y - 1 + GRID_HEIGHT) % GRID_HEIGHT],
-    [x, (y + 1) % GRID_HEIGHT],
-];
-
-const runSystem = (influence, noise, seed) => {
+const createAgents = (seed) => {
     const rng = createRng(seed);
-    let cells = Array.from({ length: GRID_WIDTH * GRID_HEIGHT }, () => (rng() > 0.5 ? 1 : 0));
-    let flips = 0;
+    return Array.from({ length: AGENT_COUNT }, () => {
+        const angle = rng() * Math.PI * 2;
+        const speed = 0.045 + rng() * 0.035;
+        return {
+            x: 0.04 + rng() * 0.92,
+            y: 0.06 + rng() * 0.88,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+        };
+    });
+};
 
-    for (let step = 0; step < STEPS; step += 1) {
-        const next = [...cells];
+const wrappedDelta = (value) => {
+    if (value > 0.5) return value - 1;
+    if (value < -0.5) return value + 1;
+    return value;
+};
 
-        for (let y = 0; y < GRID_HEIGHT; y += 1) {
-            for (let x = 0; x < GRID_WIDTH; x += 1) {
-                const index = indexOf(x, y);
-                const neighborValues = neighbors(x, y).map(([nx, ny]) => cells[indexOf(nx, ny)]);
-                const localMean = neighborValues.reduce((sum, value) => sum + value, 0) / neighborValues.length;
-                const localPreference = localMean >= 0.5 ? 1 : 0;
+const limitSpeed = (vx, vy) => {
+    const speed = Math.hypot(vx, vy);
+    const minimum = 0.035;
+    const maximum = 0.115;
 
-                let value = cells[index];
-                if (rng() < influence / 100) value = localPreference;
-                if (rng() < noise / 100) value = value === 1 ? 0 : 1;
+    if (speed === 0) return { vx: minimum, vy: 0 };
+    if (speed < minimum) {
+        const scale = minimum / speed;
+        return { vx: vx * scale, vy: vy * scale };
+    }
+    if (speed > maximum) {
+        const scale = maximum / speed;
+        return { vx: vx * scale, vy: vy * scale };
+    }
+    return { vx, vy };
+};
 
-                if (value !== cells[index]) flips += 1;
-                next[index] = value;
+const stepFlock = (agents, controls, delta, aspectRatio) => {
+    const cohesionWeight = (controls.stickTogether / 100) * 0.42;
+    const alignmentWeight = (controls.matchDirection / 100) * 1.7;
+    const separationWeight = (controls.keepDistance / 100) * 0.34;
+    const aspect = Math.max(0.6, aspectRatio);
+
+    const next = agents.map((agent, index) => {
+        let cohesionX = 0;
+        let cohesionY = 0;
+        let alignmentX = 0;
+        let alignmentY = 0;
+        let separationX = 0;
+        let separationY = 0;
+        let neighborCount = 0;
+
+        agents.forEach((other, otherIndex) => {
+            if (index === otherIndex) return;
+
+            const dx = wrappedDelta(other.x - agent.x);
+            const dy = wrappedDelta(other.y - agent.y);
+            const scaledDy = dy / aspect;
+            const distance = Math.hypot(dx, scaledDy);
+            if (distance >= NEIGHBOR_RADIUS) return;
+
+            neighborCount += 1;
+            cohesionX += dx;
+            cohesionY += dy;
+            alignmentX += other.vx;
+            alignmentY += other.vy;
+
+            if (distance < SEPARATION_RADIUS && distance > 0.0001) {
+                const pressure = (SEPARATION_RADIUS - distance) / SEPARATION_RADIUS;
+                separationX -= (dx / distance) * pressure;
+                separationY -= (dy / distance) * pressure;
             }
+        });
+
+        let ax = separationX * separationWeight;
+        let ay = separationY * separationWeight;
+
+        if (neighborCount > 0) {
+            ax += (cohesionX / neighborCount) * cohesionWeight;
+            ay += (cohesionY / neighborCount) * cohesionWeight;
+            ax += (alignmentX / neighborCount - agent.vx) * alignmentWeight;
+            ay += (alignmentY / neighborCount - agent.vy) * alignmentWeight;
         }
 
-        cells = next;
-    }
+        const velocity = limitSpeed(agent.vx + ax * delta, agent.vy + ay * delta);
+        return {
+            x: (agent.x + velocity.vx * delta + 1) % 1,
+            y: (agent.y + velocity.vy * delta + 1) % 1,
+            vx: velocity.vx,
+            vy: velocity.vy,
+        };
+    });
 
-    const positive = cells.reduce((sum, value) => sum + value, 0);
-    const share = positive / cells.length;
-    const consensus = Math.round(Math.max(share, 1 - share) * 100);
-    const normalizedActivity = Math.round(
-        Math.min(100, (flips / (cells.length * STEPS)) * 220)
-    );
+    agents.splice(0, agents.length, ...next);
+};
 
+const readCanvasColors = () => {
+    const styles = getComputedStyle(document.documentElement);
     return {
-        cells,
-        consensus,
-        activity: normalizedActivity,
-        state: consensus >= 80 ? "Ordered" : consensus >= 65 ? "Coherent" : "Mixed",
+        agent: styles.getPropertyValue("--simulation-agent").trim() || "#047857",
+        neighbor: styles.getPropertyValue("--simulation-neighbor").trim() || "rgb(4 120 87 / 0.16)",
     };
 };
 
-export const InteractiveLab = () => {
-    const [influence, setInfluence] = useState(72);
-    const [noise, setNoise] = useState(9);
-    const [seed, setSeed] = useState(17);
+const drawFlock = (state, agents) => {
+    const { ctx, width, height } = state;
+    if (!ctx || !width || !height) return;
 
-    const result = useMemo(() => runSystem(influence, noise, seed), [influence, noise, seed]);
+    const colors = readCanvasColors();
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = colors.neighbor;
+    ctx.lineWidth = 1;
+
+    for (let index = 0; index < agents.length; index += 1) {
+        for (let otherIndex = index + 1; otherIndex < agents.length; otherIndex += 1) {
+            const first = agents[index];
+            const second = agents[otherIndex];
+            const rawX = second.x - first.x;
+            const rawY = second.y - first.y;
+            if (Math.abs(rawX) > 0.5 || Math.abs(rawY) > 0.5) continue;
+            if (Math.hypot(rawX, rawY / Math.max(0.6, width / height)) > 0.075) continue;
+
+            ctx.beginPath();
+            ctx.moveTo(first.x * width, first.y * height);
+            ctx.lineTo(second.x * width, second.y * height);
+            ctx.stroke();
+        }
+    }
+
+    ctx.fillStyle = colors.agent;
+    const size = width < 480 ? 5 : 6.5;
+    agents.forEach((agent) => {
+        const x = agent.x * width;
+        const y = agent.y * height;
+        const angle = Math.atan2(agent.vy * height, agent.vx * width);
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(size * 1.7, 0);
+        ctx.lineTo(-size, size * 0.78);
+        ctx.lineTo(-size * 0.48, 0);
+        ctx.lineTo(-size, -size * 0.78);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    });
+};
+
+const FlockControl = ({ label, value, onChange }) => (
+    <label className="block space-y-2">
+        <span className="flex items-center justify-between gap-4 text-sm font-semibold uppercase tracking-wide">
+            <span>{label}</span>
+            <output className="font-mono text-muted-foreground">{value}%</output>
+        </span>
+        <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={value}
+            onChange={(event) => onChange(Number(event.target.value))}
+            className="w-full"
+        />
+    </label>
+);
+
+export const FlockPlayground = () => {
+    const [stickTogether, setStickTogether] = useState(DEFAULT_CONTROLS.stickTogether);
+    const [matchDirection, setMatchDirection] = useState(DEFAULT_CONTROLS.matchDirection);
+    const [keepDistance, setKeepDistance] = useState(DEFAULT_CONTROLS.keepDistance);
+    const canvasRef = useRef(null);
+    const animationRef = useRef(0);
+    const agentsRef = useRef(createAgents(17));
+    const controlsRef = useRef(DEFAULT_CONTROLS);
+    const stateRef = useRef({
+        ctx: null,
+        width: 0,
+        height: 0,
+        lastFrame: 0,
+        visible: true,
+        hidden: false,
+        reducedMotion: false,
+    });
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return undefined;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return undefined;
+
+        const state = stateRef.current;
+        state.ctx = ctx;
+        const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+        const resize = () => {
+            const bounds = canvas.getBoundingClientRect();
+            const width = Math.max(1, bounds.width);
+            const height = Math.max(1, bounds.height);
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+            canvas.width = Math.round(width * dpr);
+            canvas.height = Math.round(height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            state.width = width;
+            state.height = height;
+            drawFlock(state, agentsRef.current);
+        };
+
+        const tick = (time) => {
+            animationRef.current = requestAnimationFrame(tick);
+            if (state.reducedMotion || state.hidden || !state.visible) return;
+            if (!state.lastFrame) state.lastFrame = time;
+
+            const elapsed = time - state.lastFrame;
+            if (elapsed < FRAME_INTERVAL) return;
+
+            const delta = Math.min(elapsed / 1000, 0.06);
+            state.lastFrame = time;
+            stepFlock(
+                agentsRef.current,
+                controlsRef.current,
+                delta,
+                state.width / Math.max(1, state.height)
+            );
+            drawFlock(state, agentsRef.current);
+        };
+
+        const onVisibilityChange = () => {
+            state.hidden = document.hidden;
+            state.lastFrame = performance.now();
+        };
+
+        const onMotionChange = () => {
+            state.reducedMotion = motionQuery.matches;
+            state.lastFrame = performance.now();
+            if (state.reducedMotion) {
+                stepFlock(
+                    agentsRef.current,
+                    controlsRef.current,
+                    0.35,
+                    state.width / Math.max(1, state.height)
+                );
+                drawFlock(state, agentsRef.current);
+            } else if (!animationRef.current) {
+                animationRef.current = requestAnimationFrame(tick);
+            }
+        };
+
+        const resizeObserver = new ResizeObserver(resize);
+        const intersectionObserver = new IntersectionObserver(
+            ([entry]) => {
+                state.visible = entry.isIntersecting;
+                state.lastFrame = performance.now();
+            },
+            { rootMargin: "160px" }
+        );
+        const themeObserver = new MutationObserver(() => drawFlock(state, agentsRef.current));
+
+        state.reducedMotion = motionQuery.matches;
+        state.hidden = document.hidden;
+        resizeObserver.observe(canvas);
+        intersectionObserver.observe(canvas);
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        motionQuery.addEventListener("change", onMotionChange);
+        resize();
+
+        if (state.reducedMotion) {
+            stepFlock(agentsRef.current, controlsRef.current, 0.35, state.width / state.height);
+            drawFlock(state, agentsRef.current);
+        } else {
+            animationRef.current = requestAnimationFrame(tick);
+        }
+
+        return () => {
+            cancelAnimationFrame(animationRef.current);
+            resizeObserver.disconnect();
+            intersectionObserver.disconnect();
+            themeObserver.disconnect();
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+            motionQuery.removeEventListener("change", onMotionChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        controlsRef.current = { stickTogether, matchDirection, keepDistance };
+        const state = stateRef.current;
+        if (state.reducedMotion && state.ctx) {
+            stepFlock(
+                agentsRef.current,
+                controlsRef.current,
+                0.35,
+                state.width / Math.max(1, state.height)
+            );
+            drawFlock(state, agentsRef.current);
+        }
+    }, [keepDistance, matchDirection, stickTogether]);
 
     const reset = () => {
-        setInfluence(72);
-        setNoise(9);
-        setSeed(17);
+        setStickTogether(DEFAULT_CONTROLS.stickTogether);
+        setMatchDirection(DEFAULT_CONTROLS.matchDirection);
+        setKeepDistance(DEFAULT_CONTROLS.keepDistance);
+        controlsRef.current = DEFAULT_CONTROLS;
+        agentsRef.current = createAgents(17);
+        drawFlock(stateRef.current, agentsRef.current);
     };
 
     return (
-        <section id="lab" className="py-24 px-4 relative">
+        <section id="flock-playground" className="relative px-4 py-24">
             <div className="container mx-auto max-w-5xl space-y-8">
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                     <div className="text-left">
-                        <p className="font-mono uppercase tracking-wide text-sm text-muted-foreground">
-                            Live Systems Lab
+                        <p className="font-mono text-sm uppercase tracking-wide text-muted-foreground">
+                            Interactive model
                         </p>
-                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest">
-                            Local Rules, <span className="text-primary">Global Pattern</span>
+                        <h2 className="mt-2 text-3xl font-black uppercase tracking-widest md:text-5xl">
+                            Flock <span className="text-accent-ink">Playground</span>
                         </h2>
-                        <p className="text-muted-foreground mt-3 max-w-2xl">
-                            A small deterministic cellular model: each cell can copy its neighbors, while noise
-                            occasionally disrupts that local agreement. Change the balance and watch system-level
-                            order emerge—or disappear.
+                        <p className="mt-3 max-w-2xl text-muted-foreground">
+                            Change a few simple behaviors and watch the group reorganize.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={reset}
-                        className="px-4 py-2 border-2 border-foreground bg-card text-foreground font-mono uppercase tracking-wide text-sm shadow-[3px_3px_0_hsl(var(--foreground))] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5"
+                        className="self-start border-2 border-foreground bg-card px-4 py-2 font-mono text-sm uppercase tracking-wide text-foreground shadow-[3px_3px_0_hsl(var(--foreground))] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 md:self-auto"
                     >
-                        Reset System
+                        Reset
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-6">
-                    <div className="gradient-border p-6 space-y-6 text-left">
-                        <label className="space-y-2 block">
-                            <div className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide">
-                                <span>Neighbor Influence</span>
-                                <span className="font-mono">{influence}%</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                value={influence}
-                                onChange={(event) => setInfluence(Number(event.target.value))}
-                                className="w-full"
-                                style={{ accentColor: "hsl(var(--primary))" }}
-                            />
-                        </label>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.72fr_1.28fr]">
+                    <div className="gradient-border space-y-7 p-6 text-left">
+                        <FlockControl label="Stick Together" value={stickTogether} onChange={setStickTogether} />
+                        <FlockControl label="Match Direction" value={matchDirection} onChange={setMatchDirection} />
+                        <FlockControl label="Keep Distance" value={keepDistance} onChange={setKeepDistance} />
 
-                        <label className="space-y-2 block">
-                            <div className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide">
-                                <span>Noise</span>
-                                <span className="font-mono">{noise}%</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="0"
-                                max="40"
-                                value={noise}
-                                onChange={(event) => setNoise(Number(event.target.value))}
-                                className="w-full"
-                                style={{ accentColor: "hsl(var(--primary))" }}
-                            />
-                        </label>
-
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide">
-                                <span>Seed</span>
-                                <span className="font-mono">{seed}</span>
-                            </div>
-                            <div className="flex gap-2">
-                                {[17, 41, 83].map((value) => (
-                                    <button
-                                        key={value}
-                                        type="button"
-                                        onClick={() => setSeed(value)}
-                                        className={
-                                            seed === value
-                                                ? "flex-1 px-3 py-2 border-2 border-foreground bg-primary font-mono text-sm shadow-[2px_2px_0_hsl(var(--foreground))]"
-                                                : "flex-1 px-3 py-2 border-2 border-foreground bg-card font-mono text-sm shadow-[2px_2px_0_hsl(var(--foreground))]"
-                                        }
-                                    >
-                                        {value}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="border-2 border-foreground bg-card p-4">
-                                <p className="font-mono uppercase text-xs text-muted-foreground">Consensus</p>
-                                <p className="text-3xl font-black text-primary mt-2">{result.consensus}%</p>
-                            </div>
-                            <div className="border-2 border-foreground bg-card p-4">
-                                <p className="font-mono uppercase text-xs text-muted-foreground">Activity</p>
-                                <p className="text-3xl font-black text-primary mt-2">{result.activity}%</p>
-                            </div>
+                        <div className="border-l-4 border-accent-ink pl-4 text-sm leading-relaxed text-muted-foreground">
+                            These controls change cohesion, alignment, and separation—the local steering rules
+                            each agent follows.
                         </div>
                     </div>
 
-                    <div className="gradient-border p-6 space-y-5 text-left">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="font-mono uppercase text-xs text-muted-foreground">System State</p>
-                                <h3 className="text-xl font-bold uppercase tracking-wide mt-1">{result.state}</h3>
-                            </div>
-                            <span className="px-3 py-1 border-2 border-foreground bg-primary font-mono uppercase text-xs shadow-[2px_2px_0_hsl(var(--foreground))]">
-                                {STEPS} steps
+                    <figure className="gradient-border p-3 sm:p-4">
+                        <div className="relative aspect-[4/3] overflow-hidden border-2 border-foreground bg-card sm:aspect-[16/10]">
+                            <canvas
+                                ref={canvasRef}
+                                className="absolute inset-0 h-full w-full"
+                                role="img"
+                                aria-label="Animated flock of agents responding to local cohesion, alignment, and separation rules"
+                            >
+                                A flock of moving agents reorganizes in response to the three controls.
+                            </canvas>
+                            <span className="pointer-events-none absolute left-3 top-3 border-2 border-foreground bg-background px-2 py-1 font-mono text-[10px] uppercase tracking-wide sm:text-xs">
+                                {AGENT_COUNT} agents · local neighbors
                             </span>
                         </div>
-
-                        <div
-                            className="grid gap-1 border-2 border-foreground bg-background p-3"
-                            style={{ gridTemplateColumns: `repeat(${GRID_WIDTH}, minmax(0, 1fr))` }}
-                            role="img"
-                            aria-label={`Cellular system with ${result.consensus}% consensus`}
-                        >
-                            {result.cells.map((cell, index) => (
-                                <span
-                                    key={`${seed}-${index}`}
-                                    className={
-                                        cell
-                                            ? "aspect-square border border-foreground bg-primary"
-                                            : "aspect-square border border-foreground bg-card"
-                                    }
-                                />
-                            ))}
-                        </div>
-
-                        <p className="text-sm text-muted-foreground">
-                            The point is not the toy model itself; it is the modeling pattern. Simple local update
-                            rules can generate macro-level structure, and changing stochasticity or interaction
-                            strength can move the system between qualitatively different regimes.
-                        </p>
-                    </div>
+                        <figcaption className="px-1 pb-1 pt-4 text-sm leading-relaxed text-muted-foreground">
+                            No bird knows the shape of the flock—the larger pattern emerges from local interactions.
+                            Motion is paused when this section is offscreen and frozen when reduced motion is preferred.
+                        </figcaption>
+                    </figure>
                 </div>
             </div>
         </section>
