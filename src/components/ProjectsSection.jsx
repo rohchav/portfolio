@@ -53,26 +53,27 @@ export const ProjectsSection = () => {
             <div className="container mx-auto max-w-5xl">
                 <div className="text-center mb-12">
                     <p className="font-mono uppercase tracking-wide text-sm text-muted-foreground">
-                        Selected systems
+                        Evidence first
                     </p>
                     <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest mt-2">
-                        Featured <span className="text-primary">Projects</span>
+                        Featured <span className="text-accent-ink">Work</span>
                     </h2>
                     <p className="text-muted-foreground max-w-2xl mx-auto mt-4">
-                        Projects connected by a common question: how do you represent a dynamic system,
-                        test its behavior, and make the result understandable without hiding uncertainty?
+                        Simulation environments, model-evaluation pipelines, and computational tools built to
+                        make changing systems easier to test and understand.
                     </p>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-3 mb-10">
+                <div className="flex flex-wrap justify-center gap-3 mb-10" aria-label="Filter projects by topic">
                     {tags.map((tag) => (
                         <button
                             key={tag}
                             type="button"
                             onClick={() => setActiveTag(tag)}
+                            aria-pressed={activeTag === tag}
                             className={
                                 activeTag === tag
-                                    ? "px-3 py-1 border-2 border-foreground bg-primary text-foreground font-mono uppercase tracking-wide text-xs shadow-[2px_2px_0_hsl(var(--foreground))]"
+                                    ? "px-3 py-1 border-2 border-foreground bg-primary text-primary-foreground font-mono uppercase tracking-wide text-xs shadow-[2px_2px_0_hsl(var(--foreground))]"
                                     : "px-3 py-1 border-2 border-foreground bg-card text-foreground font-mono uppercase tracking-wide text-xs shadow-[2px_2px_0_hsl(var(--foreground))] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5"
                             }
                         >
@@ -81,7 +82,7 @@ export const ProjectsSection = () => {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
                     {filteredProjects.map((project) => {
                         const primaryLink = project.links.live || project.links.repo || project.links.external;
                         const primaryLabel = project.links.live
@@ -93,12 +94,18 @@ export const ProjectsSection = () => {
                         return (
                             <article
                                 key={project.title}
-                                className={`gradient-border p-6 card-hover text-left flex flex-col h-full ${
+                                className={`gradient-border p-6 card-hover text-left flex min-w-0 flex-col h-full ${
                                     project.featured && activeTag === "All" ? "md:col-span-2" : ""
                                 }`}
                             >
-                                <div className={project.featured && activeTag === "All" ? "grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-6" : ""}>
-                                    <div>
+                                <div
+                                    className={
+                                        project.featured && activeTag === "All"
+                                            ? "grid flex-1 grid-cols-1 items-stretch gap-6 md:grid-cols-[1.1fr_0.9fr]"
+                                            : "flex flex-1 flex-col"
+                                    }
+                                >
+                                    <div className="min-w-0">
                                         {project.image ? (
                                             <button
                                                 type="button"
@@ -109,7 +116,7 @@ export const ProjectsSection = () => {
                                                 <img
                                                     src={project.image}
                                                     alt={project.imageAlt}
-                                                    className="h-full w-full object-cover"
+                                                    className="h-full w-full object-contain"
                                                     loading="lazy"
                                                 />
                                             </button>
@@ -118,16 +125,22 @@ export const ProjectsSection = () => {
                                         )}
                                     </div>
 
-                                    <div className="flex flex-col h-full">
-                                        <div className="flex items-center gap-3 mt-4 md:mt-0">
+                                    <div className="flex min-w-0 flex-1 flex-col">
+                                        <div
+                                            className={
+                                                project.featured && activeTag === "All"
+                                                    ? "mt-4 flex flex-wrap items-center gap-3 md:mt-0"
+                                                    : "mt-4 flex flex-wrap items-center gap-3"
+                                            }
+                                        >
                                             <h3 className="text-xl font-bold uppercase tracking-wide">{project.title}</h3>
                                             {project.featured ? (
-                                                <span className="px-2 py-1 border-2 border-foreground bg-primary font-mono uppercase text-[10px] shadow-[2px_2px_0_hsl(var(--foreground))]">
+                                                <span className="px-2 py-1 border-2 border-foreground bg-primary text-primary-foreground font-mono uppercase text-[10px] shadow-[2px_2px_0_hsl(var(--foreground))]">
                                                     Flagship
                                                 </span>
                                             ) : null}
                                         </div>
-                                        <p className="text-sm text-muted-foreground mt-3">{project.summary}</p>
+                                        <p className="text-sm text-muted-foreground mt-3 break-words">{project.summary}</p>
 
                                         <div className="flex flex-wrap gap-2 mt-4">
                                             {project.tags.map((tag) => (
@@ -140,7 +153,7 @@ export const ProjectsSection = () => {
                                             ))}
                                         </div>
 
-                                        <div className="flex flex-wrap gap-3 mt-auto pt-6">
+                                        <div className="mt-auto flex flex-wrap items-start gap-3 pt-6">
                                             <Link
                                                 to={project.links.caseStudy}
                                                 className="px-3 py-1 border-2 border-foreground bg-card text-foreground font-mono uppercase tracking-wide text-sm shadow-[2px_2px_0_hsl(var(--foreground))] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5"
@@ -150,7 +163,7 @@ export const ProjectsSection = () => {
                                             {primaryLink ? (
                                                 <a
                                                     href={primaryLink}
-                                                    className="px-3 py-1 border-2 border-foreground bg-primary text-foreground font-mono uppercase tracking-wide text-sm shadow-[2px_2px_0_hsl(var(--foreground))] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5"
+                                                    className="px-3 py-1 border-2 border-foreground bg-primary text-primary-foreground font-mono uppercase tracking-wide text-sm shadow-[2px_2px_0_hsl(var(--foreground))] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5"
                                                     target={primaryLink.startsWith("http") ? "_blank" : undefined}
                                                     rel={primaryLink.startsWith("http") ? "noopener noreferrer" : undefined}
                                                 >

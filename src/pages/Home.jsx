@@ -1,9 +1,9 @@
 import { AnimatedForestBackground } from "../components/AnimatedForestBackground";
 import { NavBar } from "../components/NavBar";
 import { HeroSection } from "../components/HeroSection";
-import { InteractiveLab } from "../components/InteractiveLab";
+import { FlockPlayground } from "../components/InteractiveLab";
 import { AboutSection } from "../components/AboutSection";
-import { ImpactTimeline } from "../components/ImpactTimeline";
+import { TrajectorySection } from "../components/ImpactTimeline";
 import { SkillsSection } from "../components/SkillsSection";
 import { ProjectsSection } from "../components/ProjectsSection";
 import { ContactSection } from "../components/ContactSection";
@@ -19,11 +19,11 @@ export const Home = () => {
                 {/* Main Content */}
                 <main>
                     <HeroSection />
-                    <InteractiveLab />
-                    <AboutSection />
-                    <ImpactTimeline />
-                    <SkillsSection />
                     <ProjectsSection />
+                    <FlockPlayground />
+                    <AboutSection />
+                    <TrajectorySection />
+                    <SkillsSection />
                     <ContactSection />
                 </main>
 
